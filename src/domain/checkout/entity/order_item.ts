@@ -42,6 +42,10 @@ export default class OrderItem {
   }
 
   changeQuantity(quantity: number): void {
+    if(quantity < 0 && Math.abs(quantity) > this._quantity) {
+      throw new Error("Quantity cannot be less than 0. Remove the item from the order if you want to remove it completely.");
+    }
+
     if(quantity !== 0) {
       this._quantity = this._quantity + quantity;
     }
