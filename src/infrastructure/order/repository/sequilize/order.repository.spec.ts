@@ -159,6 +159,35 @@ describe("Order repository test", () => {
     });
   });
 
+  it("should throw an error when trying to remove more quantity than available in an order item", async () => {
+    const customerRepository = new CustomerRepository();
+    const customer = new Customer("123", "Customer 1");
+    const address = new Address("Street 1", 1, "Zipcode 1", "City 1");
+    customer.changeAddress(address);
+    await customerRepository.create(customer);
+
+    const productRepository = new ProductRepository();
+    const product = new Product("123", "Product 1", 10);
+    await productRepository.create(product);
+
+    const orderItem = new OrderItem(
+      "1",
+      product.name,
+      product.price,
+      product.id,
+      2
+    );
+
+    const order = new Order("123", "123", [orderItem]);
+
+    const orderRepository = new OrderRepository();
+    await orderRepository.create(order);
+
+    expect(() => {
+      order.items[0].changeQuantity(-3);
+    }).toThrow("Quantity cannot be less than 0. Remove the item from the order if you want to remove it completely.");
+  });
+
   it("should update an order with new item", async () => {
     const customerRepository = new CustomerRepository();
     const customer = new Customer("1", "Customer 1");
