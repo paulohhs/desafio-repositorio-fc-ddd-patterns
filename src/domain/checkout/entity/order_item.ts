@@ -41,6 +41,15 @@ export default class OrderItem {
     return this._price;
   }
 
+  changeQuantity(quantity: number): void {
+    if(quantity < 0) {
+      this._quantity -= quantity;
+    }
+    else if(quantity > 0) {
+      this._quantity += quantity;
+    }
+  }
+
   total(): number {
     return this._price * this._quantity
   }
