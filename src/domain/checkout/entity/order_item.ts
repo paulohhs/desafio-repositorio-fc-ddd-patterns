@@ -42,11 +42,8 @@ export default class OrderItem {
   }
 
   changeQuantity(quantity: number): void {
-    if(quantity < 0) {
-      this._quantity -= quantity;
-    }
-    else if(quantity > 0) {
-      this._quantity += quantity;
+    if(quantity !== 0) {
+      this._quantity = this._quantity + quantity;
     }
   }
 
