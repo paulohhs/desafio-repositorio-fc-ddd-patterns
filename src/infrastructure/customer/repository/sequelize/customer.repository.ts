@@ -39,6 +39,8 @@ export default class CustomerRepository implements CustomerRepositoryInterface {
         },
       }
     );
+    
+    this.publishEvents(entity);
   }
 
   async find(id: string): Promise<Customer> {

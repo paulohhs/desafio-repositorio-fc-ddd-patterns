@@ -1,4 +1,5 @@
 import EventInterface from "../../@shared/event/event.interface";
+import CustomerAddressChangedEvent from "../event/customer-address-changed.event";
 import CustomerCreatedEvent from "../event/customer-created.event";
 import Address from "../value-object/address";
 
@@ -64,6 +65,9 @@ export default class Customer {
 
   changeAddress(address: Address) {
     this._address = address;
+    this._events.push(
+      new CustomerAddressChangedEvent({ id: this._id, name: this._name, address: address.toString() })
+    );
   }
 
   isActive(): boolean {

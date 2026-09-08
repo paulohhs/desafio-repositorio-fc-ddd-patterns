@@ -5,6 +5,7 @@ import EnviaConsoleLog1Handler from "../../../../domain/customer/event/handler/e
 import Address from "../../../../domain/customer/value-object/address";
 import CustomerModel from "./customer.model";
 import CustomerRepository from "./customer.repository";
+import EnviaConsoleLogHandler from "../../../../domain/customer/event/handler/envia-console-log.handler";
 
 describe("Customer repository test", () => {
   let sequelize: Sequelize;
@@ -126,6 +127,28 @@ describe("Customer repository test", () => {
     expect(spyHandler).not.toHaveBeenCalled();
 
     await customerRepository.create(customer);
+
+    expect(spyHandler).toHaveBeenCalledTimes(1);
+    expect(customer.events).toHaveLength(0);
+  });
+
+  it("should publish the customer events when change address only after persisting", async () => {
+    const eventDispatcher = new EventDispatcher();
+    const handler = new EnviaConsoleLogHandler();
+    const spyHandler = jest.spyOn(handler, "handle");
+    eventDispatcher.register("CustomerAddressChangedEvent", handler);
+
+    const customerRepository = new CustomerRepository(eventDispatcher);
+    const customer = new Customer("123", "Customer 1");
+    customer.Address = new Address("Street 1", 1, "Zipcode 1", "City 1");
+    await customerRepository.create(customer);
+
+    const address = new Address("Street 2", 2, "Zipcode 2", "City 2");
+    customer.changeAddress(address)
+    expect(customer.events).toHaveLength(1);
+    expect(spyHandler).not.toHaveBeenCalled();
+
+    await customerRepository.update(customer);
 
     expect(spyHandler).toHaveBeenCalledTimes(1);
     expect(customer.events).toHaveLength(0);
