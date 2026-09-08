@@ -1,4 +1,4 @@
-import EventDispatcherInterface from "../../@shared/event/event-dispatcher.interface";
+import EventInterface from "../../@shared/event/event.interface";
 import CustomerCreatedEvent from "../event/customer-created.event";
 import Address from "../value-object/address";
 
@@ -8,13 +8,14 @@ export default class Customer {
   private _address!: Address;
   private _active: boolean = false;
   private _rewardPoints: number = 0;
+  private _events: EventInterface[] = [];
 
-  constructor(id: string, name: string, eventDispatcher?: EventDispatcherInterface) {
+  constructor(id: string, name: string) {
     this._id = id;
     this._name = name;
     this.validate();
-    
-    eventDispatcher?.notify(
+
+    this._events.push(
       new CustomerCreatedEvent({ id: this._id, name: this._name })
     );
   }
@@ -31,6 +32,22 @@ export default class Customer {
     return this._rewardPoints;
   }
 
+  get Address(): Address {
+    return this._address;
+  }
+
+  get events(): EventInterface[] {
+    return [...this._events];
+  }
+
+  set Address(address: Address) {
+    this._address = address;
+  }
+
+  clearEvents() {
+    this._events = [];
+  }
+
   validate() {
     if (this._id.length === 0) {
       throw new Error("Id is required");
@@ -45,10 +62,6 @@ export default class Customer {
     this.validate();
   }
 
-  get Address(): Address {
-    return this._address;
-  }
-  
   changeAddress(address: Address) {
     this._address = address;
   }
@@ -70,9 +83,5 @@ export default class Customer {
 
   addRewardPoints(points: number) {
     this._rewardPoints += points;
-  }
-
-  set Address(address: Address) {
-    this._address = address;
   }
 }
