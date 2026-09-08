@@ -1,5 +1,7 @@
 import { Sequelize } from "sequelize-typescript";
+import EventDispatcher from "../../../../domain/@shared/event/event-dispatcher";
 import Customer from "../../../../domain/customer/entity/customer";
+import EnviaConsoleLog1Handler from "../../../../domain/customer/event/handler/envia-console-log-1.handler";
 import Address from "../../../../domain/customer/value-object/address";
 import CustomerModel from "./customer.model";
 import CustomerRepository from "./customer.repository";
@@ -108,5 +110,24 @@ describe("Customer repository test", () => {
     expect(customers).toHaveLength(2);
     expect(customers).toContainEqual(customer1);
     expect(customers).toContainEqual(customer2);
+  });
+
+  it("should publish the customer events only after persisting", async () => {
+    const eventDispatcher = new EventDispatcher();
+    const handler = new EnviaConsoleLog1Handler();
+    const spyHandler = jest.spyOn(handler, "handle");
+    eventDispatcher.register("CustomerCreatedEvent", handler);
+
+    const customerRepository = new CustomerRepository(eventDispatcher);
+    const customer = new Customer("123", "Customer 1");
+    customer.Address = new Address("Street 1", 1, "Zipcode 1", "City 1");
+
+    expect(customer.events).toHaveLength(1);
+    expect(spyHandler).not.toHaveBeenCalled();
+
+    await customerRepository.create(customer);
+
+    expect(spyHandler).toHaveBeenCalledTimes(1);
+    expect(customer.events).toHaveLength(0);
   });
 });
