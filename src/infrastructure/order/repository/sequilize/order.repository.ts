@@ -33,6 +33,8 @@ export default class OrderRepository {
       { where: { id: entity.id } }
     );
 
+    await OrderItemModel.destroy({ where: { order_id: entity.id } })
+
     await OrderItemModel.bulkCreate(
       entity.items.map((item) => ({
         id: item.id,
