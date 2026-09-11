@@ -338,4 +338,67 @@ describe("Order repository test", () => {
     const orderRepository = new OrderRepository();
     await expect(orderRepository.findAll()).rejects.toThrow("Orders not found");
   });
+
+  it("should remove an item from order when updating", async () => {
+    const customerRepository = new CustomerRepository();
+    const customer = new Customer("1", "Customer 1");
+    const address = new Address("Street 1", 1, "Zipcode 1", "City 1");
+    customer.changeAddress(address);
+    await customerRepository.create(customer);
+
+    const productRepository = new ProductRepository();
+    const product1 = new Product("1", "Product 1", 10);
+    const product2 = new Product("2", "Product 2", 15);
+    await productRepository.create(product1);
+    await productRepository.create(product2);
+
+    const orderItem1 = new OrderItem(
+      "1",
+      product1.name,
+      product1.price,
+      product1.id,
+      2
+    );
+    const orderItem2 = new OrderItem(
+      "2",
+      product2.name,
+      product2.price,
+      product2.id,
+      1
+    );
+
+    const order = new Order("1", "1", [orderItem1, orderItem2]);
+
+    const orderRepository = new OrderRepository();
+    await orderRepository.create(order);
+
+    const orderWithoutItem2 = new Order("1", "1", [orderItem1]);
+    await orderRepository.update(orderWithoutItem2);
+
+    const orderModel = await OrderModel.findOne({
+      where: { id: order.id },
+      include: ["items"],
+    });
+
+    expect(orderModel.toJSON()).toStrictEqual({
+      id: "1",
+      customer_id: "1",
+      total: orderWithoutItem2.total(),
+      items: [
+        {
+          id: orderItem1.id,
+          name: orderItem1.name,
+          price: orderItem1.price,
+          quantity: orderItem1.quantity,
+          order_id: "1",
+          product_id: "1",
+        },
+      ],
+    });
+
+    const rawItems = await OrderItemModel.findAll({
+      where: { order_id: "1" },
+    });
+    expect(rawItems).toHaveLength(1);
+  });
 });
